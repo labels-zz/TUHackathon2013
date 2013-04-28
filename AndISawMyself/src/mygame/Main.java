@@ -353,7 +353,6 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleUpdate(final float tpf) {
-        System.out.println(cam.getLocation().x+", "+cam.getLocation().y+", "+cam.getLocation().z);
         this.cam.getRotation().toAngles(eyeAngles);
         if(eyeAngles[0]>1.2f){
             eyeAngles[0] = 1.2f;
