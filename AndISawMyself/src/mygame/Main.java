@@ -188,7 +188,7 @@ public class Main extends SimpleApplication {
             player3.setFallSpeed(10);
             player3.setGravity(20);
 
-            player3.setPhysicsLocation(new Vector3f(cam.getLocation().x, 256, cam.getLocation().z));
+            player3.setPhysicsLocation(new Vector3f(cam.getLocation().x, 10, cam.getLocation().z));
 
             bulletAppState.getPhysicsSpace().add(player3);
 
@@ -280,7 +280,14 @@ public class Main extends SimpleApplication {
             this.cam.setRotation(q.fromAngles(eyeAngles));
         }
             
-
+        if(cam.getLocation().y< -5)
+        {
+            if(cam.getLocation().x<=2500)
+                player3.setPhysicsLocation(new Vector3f(cam.getLocation().x+2500, 10, cam.getLocation().z));
+            else
+                player3.setPhysicsLocation(new Vector3f(cam.getLocation().x-2500, 10, cam.getLocation().z));
+            System.out.println(""+cam.getLocation().x);
+        }
         
         Vector3f camDir = new Vector3f(this.cam.getDirection().clone().multLocal(0.6f).x,0,this.cam.getDirection().clone().multLocal(0.6f).z);
         Vector3f camLeft = this.cam.getLeft().clone().multLocal(0.4f);
