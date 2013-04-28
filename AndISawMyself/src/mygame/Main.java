@@ -45,6 +45,8 @@ public class Main extends SimpleApplication {
 
     public static void main(final String[] args) {
         Main app = new Main();
+        app.setDisplayFps(false);
+        app.setDisplayStatView(false);
         app.start();
     }
     
@@ -147,9 +149,9 @@ public class Main extends SimpleApplication {
         if (usePhysics) {
             CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
             player3 = new CharacterControl(capsuleShape, 0.5f);
-            player3.setJumpSpeed(5);
-            player3.setFallSpeed(10);
-            player3.setGravity(10);
+            player3.setJumpSpeed(10);
+            player3.setFallSpeed(20);
+            player3.setGravity(20);
 
             player3.setPhysicsLocation(new Vector3f(cam.getLocation().x, 256, cam.getLocation().z));
 
