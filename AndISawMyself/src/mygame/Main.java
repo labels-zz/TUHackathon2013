@@ -20,6 +20,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
@@ -33,6 +34,7 @@ import com.jme3.terrain.geomipmap.grid.AssetTileLoader;
 import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
+import com.jme3.water.WaterFilter;
 import java.io.File;
 
 public class Main extends SimpleApplication {
@@ -47,6 +49,8 @@ public class Main extends SimpleApplication {
     private float[] eyeAngles;
     private final float playerSpeed = 0.3f;
     private Quaternion q;
+    private Vector3f lightDir = new Vector3f(-4.9236743f, -1.27054665f, 5.896916f);
+    private WaterFilter water;
 
     public static void main(final String[] args) {
         Main app = new Main();
@@ -75,6 +79,17 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        cam.setLocation(new Vector3f(cam.getLocation().x + 2500, cam.getLocation().y, cam.getLocation().z));
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        water = new WaterFilter(rootNode, lightDir);
+        water.setCenter(new Vector3f(-4.3673544f, 1.401453f, -1.4846063f));
+        water.setRadius(5);
+        water.setMaxAmplitude(2f);
+        water.setRefractionStrength(0.2f);
+        water.setUseRipples(true);
+        water.setSpeed(.1f);
+        fpp.addFilter(water);
+        viewPort.addProcessor(fpp);
         File file = new File("TerrainGridTestData.zip");
         if (!file.exists()) {
             assetManager.registerLocator("http://jmonkeyengine.googlecode.com/files/TerrainGridTestData.zip", HttpZipLocator.class);
@@ -255,7 +270,6 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleUpdate(final float tpf) {
-        
         this.cam.getRotation().toAngles(eyeAngles);
         if(eyeAngles[0]>1.2f){
             eyeAngles[0] = 1.2f;
