@@ -140,10 +140,6 @@ public class Main extends SimpleApplication {
 //            Logger.getLogger(TerrainFractalGridTest.class.getName()).log(Level.SEVERE, null, ex);
 //        }
         
-        //this.rootNode.attachChild(this.terrain);        
-        TerrainLodControl control = new TerrainGridLodControl(this.terrain, getCamera());
-        control.setLodCalculator( new DistanceLodCalculator(65, 2.7f) ); // patch size, and a multiplier
-        this.terrain.addControl(control);
         
         
         stateManager.attach(bulletAppState);
@@ -155,6 +151,16 @@ public class Main extends SimpleApplication {
         scene_model.addControl(sceneControl);
         rootNode.attachChild(scene_model);
         bulletAppState.getPhysicsSpace().add(sceneControl);
+        
+        Spatial scene_model_2;
+        scene_model_2 = assetManager.loadModel("Scenes/testScene2.j3o");
+        scene_model_2.setLocalTranslation(2500, 0, 0);
+        CollisionShape sceneShape2 = CollisionShapeFactory.createMeshShape((Node) scene_model_2);
+        RigidBodyControl sceneControl2 = new RigidBodyControl (sceneShape2, 0);
+        scene_model_2.addControl(sceneControl2);
+
+        rootNode.attachChild(scene_model_2);
+        bulletAppState.getPhysicsSpace().add(sceneControl2);
 
         this.getCamera().setLocation(new Vector3f(0, 256, 0));
 
