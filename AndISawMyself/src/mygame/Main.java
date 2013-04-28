@@ -16,6 +16,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.TerrainGrid;
@@ -38,6 +39,9 @@ public class Main extends SimpleApplication {
     private float rockScale = 128;
     private boolean usePhysics = true;
     private boolean physicsAdded = false;
+    private float[] eyeAngles;
+    private final float playerSpeed = 0.3f;
+    private Quaternion q;
 
     public static void main(final String[] args) {
         Main app = new Main();
@@ -50,15 +54,15 @@ public class Main extends SimpleApplication {
             setSettings(new AppSettings(true));
             //loadSettings = true;
         }
-        settings.setSettingsDialogImage("Interface/Tower_resized.JPG");
-        settings.setTitle("TOWER CLIMB");
+        settings.setSettingsDialogImage("Interface/portrait-reflection-03.JPG");
+        settings.setTitle("And I Saw Myself");
         super.start();
 
     }
     
-    public Main() {
-        super( new StatsAppState(), new DebugKeysAppState() );
-    } 
+    //public Main() {
+     //   super( new StatsAppState(), new DebugKeysAppState() );
+    //} 
     
     private CharacterControl player3;
 
@@ -70,8 +74,8 @@ public class Main extends SimpleApplication {
         } else {
             assetManager.registerLocator("TerrainGridTestData.zip", ZipLocator.class);
         }
-
-        
+        eyeAngles = new float[3];
+        q = new Quaternion(eyeAngles);
         ScreenshotAppState state = new ScreenshotAppState();
         this.stateManager.attach(state);
 
@@ -143,7 +147,7 @@ public class Main extends SimpleApplication {
         if (usePhysics) {
             CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
             player3 = new CharacterControl(capsuleShape, 0.5f);
-            player3.setJumpSpeed(20);
+            player3.setJumpSpeed(5);
             player3.setFallSpeed(10);
             player3.setGravity(10);
 
@@ -229,11 +233,25 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleUpdate(final float tpf) {
-        Vector3f camDir = this.cam.getDirection().clone().multLocal(0.6f);
+        
+        this.cam.getRotation().toAngles(eyeAngles);
+        if(eyeAngles[0]>1.2f){
+            eyeAngles[0] = 1.2f;
+            this.cam.setRotation(q.fromAngles(eyeAngles));
+        }
+        else if(eyeAngles[0]<-1.2f){
+            eyeAngles[0] = -1.2f;
+            this.cam.setRotation(q.fromAngles(eyeAngles));
+        }
+            
+
+        
+        Vector3f camDir = new Vector3f(this.cam.getDirection().clone().multLocal(0.6f).x,0,this.cam.getDirection().clone().multLocal(0.6f).z);
         Vector3f camLeft = this.cam.getLeft().clone().multLocal(0.4f);
         this.walkDirection.set(0, 0, 0);
         if (this.left) {
             this.walkDirection.addLocal(camLeft);
+ 
         }
         if (this.right) {
             this.walkDirection.addLocal(camLeft.negate());
@@ -246,7 +264,7 @@ public class Main extends SimpleApplication {
         }
 
         if (usePhysics) {
-            this.player3.setWalkDirection(this.walkDirection);
+            this.player3.setWalkDirection(this.walkDirection.multLocal(playerSpeed));
             this.cam.setLocation(this.player3.getPhysicsLocation());
         }
     }
