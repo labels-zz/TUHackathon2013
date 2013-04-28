@@ -51,6 +51,7 @@ public class Main extends SimpleApplication {
     private Quaternion q;
     private Vector3f lightDir = new Vector3f(-4.9236743f, -1.27054665f, 5.896916f);
     private WaterFilter water;
+    private WaterFilter water2;
 
     public static void main(final String[] args) {
         Main app = new Main();
@@ -79,17 +80,28 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        cam.setLocation(new Vector3f(cam.getLocation().x + 2500, cam.getLocation().y, cam.getLocation().z));
-        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+                FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         water = new WaterFilter(rootNode, lightDir);
-        water.setCenter(new Vector3f(-4.3673544f, 1.401453f, -1.4846063f));
+        Vector3f firstPuddle = new Vector3f(-6.239793f, -1.0f, -2.7315688f);
+        water.setCenter(firstPuddle);
         water.setRadius(5);
-        water.setMaxAmplitude(2f);
-        water.setRefractionStrength(0.2f);
+        water.setMaxAmplitude(1f);
+        water.setUseRefraction(false);
         water.setUseRipples(true);
         water.setSpeed(.1f);
+        water.setShoreHardness(.000001f);
+        water.setWaterTransparency(2f);
+        water.setDeepWaterColor(ColorRGBA.DarkGray);
+        water.setWaterColor(ColorRGBA.Gray);
         fpp.addFilter(water);
+        water2 = new WaterFilter(rootNode, lightDir);
+        water2.setCenter(new Vector3f(2500f, 0f, 0f).add(firstPuddle));
+        water2.setRadius(1000);
+        water2.setWaterHeight(1000);
+        water2.setMaxAmplitude(6f);
+        fpp.addFilter(water2);
         viewPort.addProcessor(fpp);
+        cam.setLocation(new Vector3f(cam.getLocation().x, cam.getLocation().y, cam.getLocation().z));
         File file = new File("TerrainGridTestData.zip");
         if (!file.exists()) {
             assetManager.registerLocator("http://jmonkeyengine.googlecode.com/files/TerrainGridTestData.zip", HttpZipLocator.class);
@@ -270,6 +282,7 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleUpdate(final float tpf) {
+        System.out.println(cam.getLocation().x+", "+cam.getLocation().y+", "+cam.getLocation().z);
         this.cam.getRotation().toAngles(eyeAngles);
         if(eyeAngles[0]>1.2f){
             eyeAngles[0] = 1.2f;
@@ -288,7 +301,6 @@ public class Main extends SimpleApplication {
                 player3.setPhysicsLocation(new Vector3f(cam.getLocation().x-2500, 10, cam.getLocation().z));
             System.out.println(""+cam.getLocation().x);
         }
-        
         Vector3f camDir = new Vector3f(this.cam.getDirection().clone().multLocal(0.6f).x,0,this.cam.getDirection().clone().multLocal(0.6f).z);
         Vector3f camLeft = this.cam.getLeft().clone().multLocal(0.4f);
         this.walkDirection.set(0, 0, 0);
