@@ -65,6 +65,8 @@ public class Main extends SimpleApplication implements ActionListener{
     Geometry cube1, cube2, cube3, cube4, cube5, othercube1, othercube2, othercube3, othercube4, othercube5;
     Node pickables;
     BulletAppState bulletAppState;
+    Geometry[] cubes;
+    Geometry[] otherCubes;
 
     public static void main(final String[] args) {
         Main app = new Main();
@@ -271,9 +273,9 @@ public class Main extends SimpleApplication implements ActionListener{
         birds = new AudioNode(assetManager, "Sounds/birds.ogg");
         birds.setVolume(3);
         birds.setLooping(true);
-        bubbles = new AudioNode(assetManager, "Sounds/bubbles.ogg");
-        bubbles.setVolume(3);
-        bubbles.setLooping(true);
+        //bubbles = new AudioNode(assetManager, "Sounds/bubbles.ogg");
+        //bubbles.setVolume(3);
+        //bubbles.setLooping(true);
         birds.play();
         this.initKeys();
     }
@@ -309,12 +311,16 @@ public class Main extends SimpleApplication implements ActionListener{
         //matWire.getAdditionalRenderState().setWireframe(true);
         matWire.setColor("Color", ColorRGBA.Brown);
         
+        cubes = new Geometry[5];
+        otherCubes = new Geometry[5];
+        
          cube1 = new Geometry("cannonball", new Box(1, 1, 1));
         cube1.setMaterial(matWire);
         cube1.setLocalTranslation(new Vector3f(-106, 18, 110));
         cube1.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube1)));
         pickables.attachChild(cube1);
         bulletAppState.getPhysicsSpace().add(cube1);
+        cubes[0] = cube1;
         
          cube2 = new Geometry("cannonball", new Box(1, 1, 1));
         cube2.setMaterial(matWire);
@@ -322,6 +328,7 @@ public class Main extends SimpleApplication implements ActionListener{
         cube2.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube2)));
         pickables.attachChild(cube2);
         bulletAppState.getPhysicsSpace().add(cube2);
+        cubes[1] = cube2;
         
          cube3 = new Geometry("cannonball", new Box(1, 1, 1));
         cube3.setMaterial(matWire);
@@ -329,6 +336,7 @@ public class Main extends SimpleApplication implements ActionListener{
         cube3.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube3)));
         pickables.attachChild(cube3);
         bulletAppState.getPhysicsSpace().add(cube3);
+        cubes[2] = cube3;
         
          cube4 = new Geometry("cannonball", new Box(1, 1, 1));
         cube4.setMaterial(matWire);
@@ -336,6 +344,7 @@ public class Main extends SimpleApplication implements ActionListener{
         cube4.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube4)));
         pickables.attachChild(cube4);
         bulletAppState.getPhysicsSpace().add(cube4);
+        cubes[3] = cube4;
         
          cube5 = new Geometry("cannonball", new Box(1, 1, 1));
         cube5.setMaterial(matWire);
@@ -343,6 +352,7 @@ public class Main extends SimpleApplication implements ActionListener{
         cube5.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube5)));
         pickables.attachChild(cube5);
         bulletAppState.getPhysicsSpace().add(cube5);
+        cubes[4] = cube5;
         
          othercube1 = new Geometry("cannonball", new Box(1, 1, 1));
         othercube1.setMaterial(matWire);
@@ -350,6 +360,7 @@ public class Main extends SimpleApplication implements ActionListener{
         othercube1.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube1)));
         pickables.attachChild(othercube1);
         bulletAppState.getPhysicsSpace().add(othercube1);
+        otherCubes[0] = othercube1;
         
          othercube2 = new Geometry("cannonball", new Box(1, 1, 1));
         othercube2.setMaterial(matWire);
@@ -357,6 +368,7 @@ public class Main extends SimpleApplication implements ActionListener{
         othercube2.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube2)));
         pickables.attachChild(othercube2);
         bulletAppState.getPhysicsSpace().add(othercube2);
+        otherCubes[1] = othercube2;
         
         othercube3 = new Geometry("cannonball", new Box(1, 1, 1));
         othercube3.setMaterial(matWire);
@@ -364,6 +376,7 @@ public class Main extends SimpleApplication implements ActionListener{
         othercube3.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube3)));
         pickables.attachChild(othercube3);
         bulletAppState.getPhysicsSpace().add(othercube3);
+        otherCubes[2] = othercube3;
         
         othercube4 = new Geometry("cannonball", new Box(1, 1, 1));
         othercube4.setMaterial(matWire);
@@ -371,6 +384,7 @@ public class Main extends SimpleApplication implements ActionListener{
         othercube4.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube4)));
         pickables.attachChild(othercube4);
         bulletAppState.getPhysicsSpace().add(othercube4);
+        otherCubes[3] = othercube4;
         
         othercube5 = new Geometry("cannonball", new Box(1, 1, 1));
         othercube5.setMaterial(matWire);
@@ -378,6 +392,9 @@ public class Main extends SimpleApplication implements ActionListener{
         othercube5.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube5)));
         pickables.attachChild(othercube5);
         bulletAppState.getPhysicsSpace().add(othercube5);
+        otherCubes[4] = othercube5;
+        
+        
         /*Geometry cube1 = new Geometry("cannonball", new Box(1, 1, 1));
         cube1.setMaterial(matWire);
         cube1.setLocalTranslation(new Vector3f(-106, 18, 110));
@@ -713,17 +730,19 @@ public class Main extends SimpleApplication implements ActionListener{
 */
                 //refreshOtherCubes();
                 birds.pause();
-                bubbles.play();
+                //bubbles.play();
+                for(int i =0; i<5; i++){
+                    ((RigidBodyControl)otherCubes[i].getControl(0)).setPhysicsLocation(((RigidBodyControl)cubes[i].getControl(0)).getPhysicsLocation().add(new Vector3f(2500,0,0)));
+                }
             }
             else{
                 player.setPhysicsLocation(new Vector3f(cam.getLocation().x-2500, 10, cam.getLocation().z+10));
                 player.setGravity(30);
-                cube1.setLocalTranslation(othercube1.getLocalTranslation());
-                cube2.setLocalTranslation(othercube2.getLocalTranslation());
-                cube3.setLocalTranslation(othercube3.getLocalTranslation());
-                cube4.setLocalTranslation(othercube4.getLocalTranslation());
-                cube5.setLocalTranslation(othercube5.getLocalTranslation());
-                bubbles.pause();
+                   for(int i =0; i<5; i++){
+                       ((RigidBodyControl)cubes[i].getControl(0)).setPhysicsLocation(((RigidBodyControl)otherCubes[i].getControl(0)).getPhysicsLocation().add(new Vector3f(-2500,0,0)));
+                   }
+
+                //bubbles.pause();
                 birds.play();
             }
         }
