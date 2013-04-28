@@ -273,9 +273,9 @@ public class Main extends SimpleApplication implements ActionListener{
         birds = new AudioNode(assetManager, "Sounds/birds.ogg");
         birds.setVolume(3);
         birds.setLooping(true);
-        //bubbles = new AudioNode(assetManager, "Sounds/bubbles.ogg");
-        //bubbles.setVolume(3);
-        //bubbles.setLooping(true);
+        bubbles = new AudioNode(assetManager, "Sounds/bubbles.ogg");
+        bubbles.setVolume(3);
+        bubbles.setLooping(true);
         birds.play();
         this.initKeys();
     }
@@ -696,7 +696,7 @@ public class Main extends SimpleApplication implements ActionListener{
 
     @Override
     public void simpleUpdate(final float tpf) {
-        /*this.cam.getRotation().toAngles(eyeAngles);
+        this.cam.getRotation().toAngles(eyeAngles);
         if(eyeAngles[0]>1.2f){
             eyeAngles[0] = 1.2f;
             this.cam.setRotation(q.fromAngles(eyeAngles));
@@ -704,7 +704,7 @@ public class Main extends SimpleApplication implements ActionListener{
         else if(eyeAngles[0]<-1.2f){
             eyeAngles[0] = -1.2f;
             this.cam.setRotation(q.fromAngles(eyeAngles));
-        }*/
+        }
             
         if(cam.getLocation().y< -5)
         {
@@ -730,7 +730,7 @@ public class Main extends SimpleApplication implements ActionListener{
 */
                 //refreshOtherCubes();
                 birds.pause();
-                //bubbles.play();
+                bubbles.play();
                 for(int i =0; i<5; i++){
                     ((RigidBodyControl)otherCubes[i].getControl(0)).setPhysicsLocation(((RigidBodyControl)cubes[i].getControl(0)).getPhysicsLocation().add(new Vector3f(2500,0,0)));
                 }
@@ -742,7 +742,7 @@ public class Main extends SimpleApplication implements ActionListener{
                        ((RigidBodyControl)cubes[i].getControl(0)).setPhysicsLocation(((RigidBodyControl)otherCubes[i].getControl(0)).getPhysicsLocation().add(new Vector3f(-2500,0,0)));
                    }
 
-                //bubbles.pause();
+                bubbles.pause();
                 birds.play();
             }
         }
