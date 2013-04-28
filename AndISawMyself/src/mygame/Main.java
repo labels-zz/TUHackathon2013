@@ -184,7 +184,7 @@ public class Main extends SimpleApplication {
         stateManager.attach(bulletAppState);
         //OUR TERRAIN
         Spatial scene_model;
-        scene_model = assetManager.loadModel("Scenes/testScene.j3o");
+        scene_model = assetManager.loadModel("Scenes/theScene1.j3o");
         CollisionShape sceneShape = CollisionShapeFactory.createMeshShape((Node) scene_model);
         RigidBodyControl sceneControl = new RigidBodyControl(sceneShape, 0);
         scene_model.addControl(sceneControl);
@@ -192,7 +192,7 @@ public class Main extends SimpleApplication {
         bulletAppState.getPhysicsSpace().add(sceneControl);
         
         Spatial scene_model_2;
-        scene_model_2 = assetManager.loadModel("Scenes/testScene2.j3o");
+        scene_model_2 = assetManager.loadModel("Scenes/theScene2.j3o");
         scene_model_2.setLocalTranslation(2500, 0, 0);
         CollisionShape sceneShape2 = CollisionShapeFactory.createMeshShape((Node) scene_model_2);
         RigidBodyControl sceneControl2 = new RigidBodyControl (sceneShape2, 0);
@@ -210,9 +210,10 @@ public class Main extends SimpleApplication {
             player = new CharacterControl(capsuleShape, 0.5f);
             player.setJumpSpeed(10);
             player.setFallSpeed(10);
-            player.setGravity(20);
+            player.setGravity(35);
 
-            player.setPhysicsLocation(new Vector3f(cam.getLocation().x, 10, cam.getLocation().z));
+            //player.setPhysicsLocation(new Vector3f(cam.getLocation().x, 10, cam.getLocation().z));
+            player.setPhysicsLocation(new Vector3f(-5, 2, 160));
 
             bulletAppState.getPhysicsSpace().add(player);
 
@@ -365,13 +366,15 @@ public class Main extends SimpleApplication {
             
         if(cam.getLocation().y< -5)
         {
-            if(cam.getLocation().x<=2500){
-                player.setPhysicsLocation(new Vector3f(cam.getLocation().x+2500, 10, cam.getLocation().z));
+            if(cam.getLocation().x<=2300){
+                player.setPhysicsLocation(new Vector3f(cam.getLocation().x+2500, 10, cam.getLocation().z+10));
+                player.setGravity(7);
                 birds.pause();
                 bubbles.play();
             }
             else{
-                player.setPhysicsLocation(new Vector3f(cam.getLocation().x-2500, 10, cam.getLocation().z));
+                player.setPhysicsLocation(new Vector3f(cam.getLocation().x-2500, 10, cam.getLocation().z+10));
+                player.setGravity(35);
                 bubbles.pause();
                 birds.play();
             }
