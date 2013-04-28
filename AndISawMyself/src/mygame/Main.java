@@ -101,7 +101,7 @@ public class Main extends SimpleApplication implements ActionListener{
         pickables = new Node("Pickables");
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         water = new WaterFilter(rootNode, lightDir);
-        Vector3f firstPuddle = new Vector3f(-6.239793f, -1.0f, -2.7315688f);
+        Vector3f firstPuddle = new Vector3f(-4.25f, 10f, 140f);
         water.setCenter(firstPuddle);
         water.setRadius(5);
         water.setMaxAmplitude(6f);
