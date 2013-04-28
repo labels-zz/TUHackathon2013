@@ -6,6 +6,7 @@ import com.jme3.app.StatsAppState;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.asset.plugins.HttpZipLocator;
 import com.jme3.asset.plugins.ZipLocator;
+import com.jme3.audio.AudioNode;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
@@ -58,6 +59,7 @@ public class Main extends SimpleApplication {
     private Vector3f lightDir = new Vector3f(-4.9236743f, -1.27054665f, 5.896916f);
     private WaterFilter water;
     private WaterFilter water2;
+    private AudioNode birds, bubbles;
     Geometry holding;
     Node pickables;
     final BulletAppState bulletAppState = new BulletAppState();
@@ -234,7 +236,13 @@ public class Main extends SimpleApplication {
 
             });
         }
-        
+        birds = new AudioNode(assetManager, "Sounds/birds.ogg");
+        birds.setVolume(3);
+        birds.setLooping(true);
+        bubbles = new AudioNode(assetManager, "Sounds/bubbles.ogg");
+        bubbles.setVolume(3);
+        bubbles.setLooping(true);
+        birds.play();
         this.initKeys();
     }
 
@@ -358,11 +366,16 @@ public class Main extends SimpleApplication {
             
         if(cam.getLocation().y< -5)
         {
-            if(cam.getLocation().x<=2500)
+            if(cam.getLocation().x<=2500){
                 player.setPhysicsLocation(new Vector3f(cam.getLocation().x+2500, 10, cam.getLocation().z));
-            else
+                birds.pause();
+                bubbles.play();
+            }
+            else{
                 player.setPhysicsLocation(new Vector3f(cam.getLocation().x-2500, 10, cam.getLocation().z));
-            System.out.println(""+cam.getLocation().x);
+                bubbles.pause();
+                birds.play();
+            }
         }
         Vector3f camDir = new Vector3f(this.cam.getDirection().clone().multLocal(0.6f).x,0,this.cam.getDirection().clone().multLocal(0.6f).z);
         Vector3f camLeft = this.cam.getLeft().clone().multLocal(0.4f);
