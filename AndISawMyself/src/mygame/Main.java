@@ -18,7 +18,9 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
+import com.jme3.terrain.Terrain;
 import com.jme3.terrain.geomipmap.TerrainGrid;
 import com.jme3.terrain.geomipmap.TerrainGridListener;
 import com.jme3.terrain.geomipmap.TerrainGridLodControl;
@@ -122,6 +124,9 @@ public class Main extends SimpleApplication {
 //quad.getHeightMap(), terrain.getLocalScale()), 0
         AssetTileLoader grid = new AssetTileLoader(assetManager, "testgrid", "TerrainGrid");
         this.terrain = new TerrainGrid("terrain", 65, 257, grid);
+        Spatial scene_model;
+        scene_model = assetManager.loadModel("Scenes/testScene.j3o");
+        rootNode.attachChild(scene_model);
 
         this.terrain.setMaterial(this.mat_terrain);
         this.terrain.setLocalTranslation(0, 0, 0);
@@ -133,8 +138,7 @@ public class Main extends SimpleApplication {
 //            Logger.getLogger(TerrainFractalGridTest.class.getName()).log(Level.SEVERE, null, ex);
 //        }
         
-        this.rootNode.attachChild(this.terrain);
-        
+        this.rootNode.attachChild(this.terrain);        
         TerrainLodControl control = new TerrainGridLodControl(this.terrain, getCamera());
         control.setLodCalculator( new DistanceLodCalculator(65, 2.7f) ); // patch size, and a multiplier
         this.terrain.addControl(control);
