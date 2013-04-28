@@ -93,13 +93,18 @@ public class Main extends SimpleApplication implements ActionListener{
 
     @Override
     public void simpleInitApp() {
+        Geometry teaGeom = (Geometry) assetManager.loadModel("Models/Teapot/Teapot.obj");
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
+        teaGeom.setMaterial(mat);
+        rootNode.attachChild(teaGeom);
+        teaGeom.setLocalTranslation(teaGeom.worldToLocal(new Vector3f(-7.21f, 34.66f, -54.9f), null));
         pickables = new Node("Pickables");
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         water = new WaterFilter(rootNode, lightDir);
         Vector3f firstPuddle = new Vector3f(-6.239793f, -1.0f, -2.7315688f);
         water.setCenter(firstPuddle);
         water.setRadius(5);
-        water.setMaxAmplitude(1f);
+        water.setMaxAmplitude(6f);
         water.setUseRefraction(false);
         water.setUseRipples(true);
         water.setSpeed(.1f);
