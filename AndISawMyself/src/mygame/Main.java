@@ -96,10 +96,10 @@ public class Main extends SimpleApplication implements ActionListener{
         pickables = new Node("Pickables");
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         water = new WaterFilter(rootNode, lightDir);
-        Vector3f firstPuddle = new Vector3f(-4.25f, 10f, 140f);
+        Vector3f firstPuddle = new Vector3f(-6.239793f, -1.0f, -2.7315688f);
         water.setCenter(firstPuddle);
         water.setRadius(5);
-        water.setMaxAmplitude(6f);
+        water.setMaxAmplitude(1f);
         water.setUseRefraction(false);
         water.setUseRipples(true);
         water.setSpeed(.1f);
@@ -674,7 +674,15 @@ public class Main extends SimpleApplication implements ActionListener{
 
     @Override
     public void simpleUpdate(final float tpf) {
-
+        /*this.cam.getRotation().toAngles(eyeAngles);
+        if(eyeAngles[0]>1.2f){
+            eyeAngles[0] = 1.2f;
+            this.cam.setRotation(q.fromAngles(eyeAngles));
+        }
+        else if(eyeAngles[0]<-1.2f){
+            eyeAngles[0] = -1.2f;
+            this.cam.setRotation(q.fromAngles(eyeAngles));
+        }*/
             
         if(cam.getLocation().y< -5)
         {
