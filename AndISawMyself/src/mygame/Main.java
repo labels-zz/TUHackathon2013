@@ -13,14 +13,20 @@ import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.KeyInput;
+import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
@@ -52,6 +58,9 @@ public class Main extends SimpleApplication {
     private Vector3f lightDir = new Vector3f(-4.9236743f, -1.27054665f, 5.896916f);
     private WaterFilter water;
     private WaterFilter water2;
+    Geometry holding;
+    Node pickables;
+    final BulletAppState bulletAppState = new BulletAppState();
 
     public static void main(final String[] args) {
         Main app = new Main();
@@ -76,10 +85,11 @@ public class Main extends SimpleApplication {
      //   super( new StatsAppState(), new DebugKeysAppState() );
     //} 
     
-    private CharacterControl player3;
+    private CharacterControl player;
 
     @Override
     public void simpleInitApp() {
+        pickables = new Node("Pickables");
                 FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         water = new WaterFilter(rootNode, lightDir);
         Vector3f firstPuddle = new Vector3f(-6.239793f, -1.0f, -2.7315688f);
@@ -113,7 +123,7 @@ public class Main extends SimpleApplication {
         ScreenshotAppState state = new ScreenshotAppState();
         this.stateManager.attach(state);
         
-        final BulletAppState bulletAppState = new BulletAppState();
+        
 
         // TERRAIN TEXTURE material
         this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
@@ -195,14 +205,14 @@ public class Main extends SimpleApplication {
 
         if (usePhysics) {
             CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
-            player3 = new CharacterControl(capsuleShape, 0.5f);
-            player3.setJumpSpeed(10);
-            player3.setFallSpeed(10);
-            player3.setGravity(20);
+            player = new CharacterControl(capsuleShape, 0.5f);
+            player.setJumpSpeed(10);
+            player.setFallSpeed(10);
+            player.setGravity(20);
 
-            player3.setPhysicsLocation(new Vector3f(cam.getLocation().x, 10, cam.getLocation().z));
+            player.setPhysicsLocation(new Vector3f(cam.getLocation().x, 10, cam.getLocation().z));
 
-            bulletAppState.getPhysicsSpace().add(player3);
+            bulletAppState.getPhysicsSpace().add(player);
 
             terrain.addListener(new TerrainGridListener() {
 
@@ -235,11 +245,14 @@ public class Main extends SimpleApplication {
         this.inputManager.addMapping("Ups", new KeyTrigger(KeyInput.KEY_W));
         this.inputManager.addMapping("Downs", new KeyTrigger(KeyInput.KEY_S));
         this.inputManager.addMapping("Jumps", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("PickTarget", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+    
         this.inputManager.addListener(this.actionListener, "Lefts");
         this.inputManager.addListener(this.actionListener, "Rights");
         this.inputManager.addListener(this.actionListener, "Ups");
         this.inputManager.addListener(this.actionListener, "Downs");
         this.inputManager.addListener(this.actionListener, "Jumps");
+        inputManager.addListener(this.actionListener, "PickTarget");
     }
     private boolean left;
     private boolean right;
@@ -274,8 +287,58 @@ public class Main extends SimpleApplication {
                     Main.this.down = false;
                 }
             } else if (name.equals("Jumps")) {
-                Main.this.player3.jump();
+                Main.this.player.jump();
             }
+            
+            else if (name.equals("PickTarget"))
+    {
+        if(holding == null)
+        {
+        // Reset results list.
+        CollisionResults results = new CollisionResults();
+        // Convert screen click to 3d position
+        Vector2f click2d = inputManager.getCursorPosition();
+        Vector3f click3d = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 0f).clone();
+        //Vector3f dir = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 1f).subtractLocal(click3d).normalizeLocal();
+        Vector3f dir = cam.getDirection().clone().multLocal(20f);
+        // Aim the ray from the clicked spot forwards.
+        Ray ray = new Ray(click3d, dir);
+        // Collect intersections between ray and all nodes in results list.
+        rootNode.collideWith(ray, results);
+        // (Print the results so we see what is going on:)
+        for (int i = 0; i < results.size(); i++) {
+          // (For each “hit”, we know distance, impact point, geometry.)
+          float dist = results.getCollision(i).getDistance();
+          Vector3f pt = results.getCollision(i).getContactPoint();
+          String target = results.getCollision(i).getGeometry().getName();
+          System.out.println("Selection #" + i + ": " + target + " at " + pt + ", " + dist + " WU away.");
+        }
+        // Use the results -- we rotate the selected geometry.
+        if (results.size() > 0) {
+          // The closest result is the target that the player picked:
+          holding = results.getClosestCollision().getGeometry();
+          // Here comes the action:
+          //if (target.getName().equals("cannonball")) {
+            //pickables.detachChild(target);
+            bulletAppState.getPhysicsSpace().remove(holding);
+            //playerNode.attachChild(target);
+            holding.setLocalTranslation
+                    (player.getPhysicsLocation().x + (cam.getDirection().clone().multLocal(0.6f).x)*10, player.getPhysicsLocation().y + (cam.getDirection().clone().multLocal(0.6f).y)*10, player.getPhysicsLocation().z + (cam.getDirection().clone().multLocal(0.6f).z)*10);
+            //target.setLocalTranslation(player.getPhysicsLocation() + cam.getDirection().clone().multLocal(0.6f));
+          }
+        }
+        else
+        {
+            for(int i = 0; i < holding.getNumControls(); i++)
+            {
+                holding.removeControl(holding.getControl(i));
+            }
+            holding.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(holding)));
+            bulletAppState.getPhysicsSpace().add(holding);
+            holding = null;
+        }
+    }
+            
         }
     };
     private final Vector3f walkDirection = new Vector3f();
@@ -296,9 +359,9 @@ public class Main extends SimpleApplication {
         if(cam.getLocation().y< -5)
         {
             if(cam.getLocation().x<=2500)
-                player3.setPhysicsLocation(new Vector3f(cam.getLocation().x+2500, 10, cam.getLocation().z));
+                player.setPhysicsLocation(new Vector3f(cam.getLocation().x+2500, 10, cam.getLocation().z));
             else
-                player3.setPhysicsLocation(new Vector3f(cam.getLocation().x-2500, 10, cam.getLocation().z));
+                player.setPhysicsLocation(new Vector3f(cam.getLocation().x-2500, 10, cam.getLocation().z));
             System.out.println(""+cam.getLocation().x);
         }
         Vector3f camDir = new Vector3f(this.cam.getDirection().clone().multLocal(0.6f).x,0,this.cam.getDirection().clone().multLocal(0.6f).z);
@@ -319,8 +382,12 @@ public class Main extends SimpleApplication {
         }
 
         if (usePhysics) {
-            this.player3.setWalkDirection(this.walkDirection.multLocal(playerSpeed));
-            this.cam.setLocation(this.player3.getPhysicsLocation());
+            this.player.setWalkDirection(this.walkDirection.multLocal(playerSpeed));
+            this.cam.setLocation(this.player.getPhysicsLocation());
         }
+        
+        if(holding != null){holding.setLocalTranslation
+                    (player.getPhysicsLocation().x + (camDir.x)*20, player.getPhysicsLocation().y + (camDir.y)*20, player.getPhysicsLocation().z + (camDir.z)*20);
+    }
     }
 }
