@@ -8,9 +8,11 @@ import com.jme3.asset.plugins.HttpZipLocator;
 import com.jme3.asset.plugins.ZipLocator;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.HeightfieldCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -18,6 +20,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 import com.jme3.terrain.Terrain;
@@ -82,6 +85,8 @@ public class Main extends SimpleApplication {
         q = new Quaternion(eyeAngles);
         ScreenshotAppState state = new ScreenshotAppState();
         this.stateManager.attach(state);
+        
+        final BulletAppState bulletAppState = new BulletAppState();
 
         // TERRAIN TEXTURE material
         this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
@@ -124,10 +129,7 @@ public class Main extends SimpleApplication {
 //quad.getHeightMap(), terrain.getLocalScale()), 0
         AssetTileLoader grid = new AssetTileLoader(assetManager, "testgrid", "TerrainGrid");
         this.terrain = new TerrainGrid("terrain", 65, 257, grid);
-        Spatial scene_model;
-        scene_model = assetManager.loadModel("Scenes/testScene.j3o");
-        rootNode.attachChild(scene_model);
-
+        
         this.terrain.setMaterial(this.mat_terrain);
         this.terrain.setLocalTranslation(0, 0, 0);
         this.terrain.setLocalScale(2f, 1f, 2f);
@@ -138,13 +140,21 @@ public class Main extends SimpleApplication {
 //            Logger.getLogger(TerrainFractalGridTest.class.getName()).log(Level.SEVERE, null, ex);
 //        }
         
-        this.rootNode.attachChild(this.terrain);        
+        //this.rootNode.attachChild(this.terrain);        
         TerrainLodControl control = new TerrainGridLodControl(this.terrain, getCamera());
         control.setLodCalculator( new DistanceLodCalculator(65, 2.7f) ); // patch size, and a multiplier
         this.terrain.addControl(control);
         
-        final BulletAppState bulletAppState = new BulletAppState();
+        
         stateManager.attach(bulletAppState);
+        //OUR TERRAIN
+        Spatial scene_model;
+        scene_model = assetManager.loadModel("Scenes/testScene.j3o");
+        CollisionShape sceneShape = CollisionShapeFactory.createMeshShape((Node) scene_model);
+        RigidBodyControl sceneControl = new RigidBodyControl(sceneShape, 0);
+        scene_model.addControl(sceneControl);
+        rootNode.attachChild(scene_model);
+        bulletAppState.getPhysicsSpace().add(sceneControl);
 
         this.getCamera().setLocation(new Vector3f(0, 256, 0));
 
@@ -154,7 +164,7 @@ public class Main extends SimpleApplication {
             CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(0.5f, 1.8f, 1);
             player3 = new CharacterControl(capsuleShape, 0.5f);
             player3.setJumpSpeed(10);
-            player3.setFallSpeed(20);
+            player3.setFallSpeed(10);
             player3.setGravity(20);
 
             player3.setPhysicsLocation(new Vector3f(cam.getLocation().x, 256, cam.getLocation().z));
