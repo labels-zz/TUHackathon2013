@@ -1,5 +1,10 @@
 package mygame;
 
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
+import com.jme3.animation.AnimEventListener;
+import com.jme3.animation.LoopMode;
+import com.jme3.animation.SkeletonControl;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
@@ -45,7 +50,7 @@ import com.jme3.texture.Texture.WrapMode;
 import com.jme3.water.WaterFilter;
 import java.io.File;
 
-public class Main extends SimpleApplication implements ActionListener{
+public class Main extends SimpleApplication implements AnimEventListener, ActionListener{
 
     private Material mat_terrain;
     private TerrainGrid terrain;
@@ -67,6 +72,11 @@ public class Main extends SimpleApplication implements ActionListener{
     BulletAppState bulletAppState;
     Geometry[] cubes;
     Geometry[] otherCubes;
+    
+    private AnimChannel channel;
+    private AnimControl control;
+    private Geometry geom;
+    private Spatial model;
 
     public static void main(final String[] args) {
         Main app = new Main();
@@ -95,6 +105,33 @@ public class Main extends SimpleApplication implements ActionListener{
 
     @Override
     public void simpleInitApp() {
+        model = (Spatial) assetManager.loadModel("Models/fish/fish.mesh.xml");
+        model.center();
+        model.setLocalTranslation(new Vector3f(2490, 2, 160));
+        //Material fishmat = assetManager.loadMaterial("Textures/BrickWall/BrickWall.j3m");
+        //model.setMaterial(fishmat);
+
+        control = model.getControl(AnimControl.class);
+        control.addListener(this);
+        channel = control.createChannel();
+
+
+        for (String anim : control.getAnimationNames())
+            System.out.println(anim);
+        
+        channel.setAnim("swim");
+        geom = (Geometry)((Node)model).getChild(0);
+        SkeletonControl skeletonControl = model.getControl(SkeletonControl.class);
+
+        //Box b = new Box(.25f,3f,.25f);
+        //Geometry item = new Geometry("Item", b);
+        //item.move(0, 1.5f, 0);
+        //item.setMaterial(assetManager.loadMaterial("Common/Materials/RedColor.j3m"));
+        //Node n = skeletonControl.getAttachmentsNode("hand.right");
+        //n.attachChild(item);
+
+        rootNode.attachChild(model);
+        
         Geometry teaGeom = (Geometry) assetManager.loadModel("Models/Teapot/Teapot.obj");
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         teaGeom.setMaterial(mat);
@@ -174,19 +211,13 @@ public class Main extends SimpleApplication implements ActionListener{
         this.mat_terrain.setFloat("slopeTileFactor", 32);
 
         this.mat_terrain.setFloat("terrainSize", 129);
-//quad.getHeightMap(), terrain.getLocalScale()), 0
         AssetTileLoader grid = new AssetTileLoader(assetManager, "testgrid", "TerrainGrid");
         this.terrain = new TerrainGrid("terrain", 65, 257, grid);
         
         this.terrain.setMaterial(this.mat_terrain);
         this.terrain.setLocalTranslation(0, 0, 0);
         this.terrain.setLocalScale(2f, 1f, 2f);
-//        try {
-//            BinaryExporter.getInstance().save(terrain, new File("/Users/normenhansen/Documents/Code/jme3/engine/src/test-data/TerrainGrid/"
-//                    + "TerrainGrid.j3o"));
-//        } catch (IOException ex) {
-//            Logger.getLogger(TerrainFractalGridTest.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+
         
         
         bulletAppState = new BulletAppState();
@@ -229,46 +260,7 @@ public class Main extends SimpleApplication implements ActionListener{
             bulletAppState.getPhysicsSpace().add(player);
             
             initializeBlocks();
-            
-            /*Material matWire;
-     matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        //matWire.getAdditionalRenderState().setWireframe(true);
-        matWire.setColor("Color", ColorRGBA.Brown);
-            Geometry cube = new Geometry("cannonball", new Box(1, 1, 1));
-            cube.setMaterial(matWire);
-            cube.setLocalTranslation(new Vector3f(-15, 50, 175));
-            cube.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube)));
-            //rootNode.attachChild(cube);
-            pickables.attachChild(cube);
-            bulletAppState.getPhysicsSpace().add(cube);
-            
-            Geometry cube2 = new Geometry("cannonball", new Box(1, 1, 1));
-            cube2.setMaterial(matWire);
-            cube2.setLocalTranslation(new Vector3f(-20, 50, 175));
-            cube2.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube2)));
-            //rootNode.attachChild(cube);
-            pickables.attachChild(cube2);
-            bulletAppState.getPhysicsSpace().add(cube2);*/
 
-            /*terrain.addListener(new TerrainGridListener() {
-
-                public void gridMoved(Vector3f newCenter) {
-                }
-
-                public void tileAttached(Vector3f cell, TerrainQuad quad) {
-                    while(quad.getControl(RigidBodyControl.class)!=null){
-                        quad.removeControl(RigidBodyControl.class);
-                    }
-                    quad.addControl(new RigidBodyControl(new HeightfieldCollisionShape(quad.getHeightMap(), terrain.getLocalScale()), 0));
-                    bulletAppState.getPhysicsSpace().add(quad);
-                }
-
-                public void tileDetached(Vector3f cell, TerrainQuad quad) {
-                    bulletAppState.getPhysicsSpace().remove(quad);
-                    quad.removeControl(RigidBodyControl.class);
-                }
-
-            });*/
         }
         birds = new AudioNode(assetManager, "Sounds/birds.ogg");
         birds.setVolume(3);
@@ -282,29 +274,7 @@ public class Main extends SimpleApplication implements ActionListener{
     
     private void initializeBlocks()
     {
-        /*Node block1 = new Node(), block2 = new Node(), block3 = new Node();
-        Geometry block1up, block1down, block2up, block2down, block3up, block3down;
-        Material blockMat;
-        blockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        blockMat.setColor("Color", ColorRGBA.Brown);
-        
-        block1up = new Geometry("block", new Box(3, 3, 3));
-        block1up.setMaterial(blockMat);
-        block1up.setLocalTranslation(new Vector3f(-37.0f, 1.4f, 127.4f));
-         //block1up.setLocalTranslation(new Vector3f(-10,2,175));
-        
-        block1.attachChild(block1up);
-        block1.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(block1up)));
-        bulletAppState.getPhysicsSpace().add(block1up);
-        pickables.attachChild(block1up);
-        
-        block1down = new Geometry("block", new Box(1, 1, 1));
-        block1down.setMaterial(blockMat);
-        block1down.setLocalTranslation(new Vector3f(2463.0f, 1.4f, 127.4f));
-        block1.attachChild(block1up);
-        block1.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(block1down)));
-        bulletAppState.getPhysicsSpace().add(block1down);
-        pickables.attachChild(block1down);*/
+      
         
         Material matWire;
         matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -395,75 +365,7 @@ public class Main extends SimpleApplication implements ActionListener{
         otherCubes[4] = othercube5;
         
         
-        /*Geometry cube1 = new Geometry("cannonball", new Box(1, 1, 1));
-        cube1.setMaterial(matWire);
-        cube1.setLocalTranslation(new Vector3f(-106, 18, 110));
-        cube1.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube1)));
-        pickables.attachChild(cube1);
-        bulletAppState.getPhysicsSpace().add(cube1);
-        
-        Geometry cube2 = new Geometry("cannonball", new Box(1, 1, 1));
-        cube2.setMaterial(matWire);
-        cube2.setLocalTranslation(new Vector3f(-36, 2, 186));
-        cube2.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube2)));
-        pickables.attachChild(cube2);
-        bulletAppState.getPhysicsSpace().add(cube2);
-        
-        Geometry cube3 = new Geometry("cannonball", new Box(1, 1, 1));
-        cube3.setMaterial(matWire);
-        cube3.setLocalTranslation(new Vector3f(-37, 2, 127));
-        cube3.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube3)));
-        pickables.attachChild(cube3);
-        bulletAppState.getPhysicsSpace().add(cube3);
-        
-        Geometry cube4 = new Geometry("cannonball", new Box(1, 1, 1));
-        cube4.setMaterial(matWire);
-        cube4.setLocalTranslation(new Vector3f(69, 18, 199));
-        cube4.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube4)));
-        pickables.attachChild(cube4);
-        bulletAppState.getPhysicsSpace().add(cube4);
-        
-        Geometry cube5 = new Geometry("cannonball", new Box(1, 1, 1));
-        cube5.setMaterial(matWire);
-        cube5.setLocalTranslation(new Vector3f(51, 13, -48));
-        cube5.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(cube5)));
-        pickables.attachChild(cube5);
-        bulletAppState.getPhysicsSpace().add(cube5);
-        
-        Geometry othercube1 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube1.setMaterial(matWire);
-        othercube1.setLocalTranslation(new Vector3f(2393, 18, 109));
-        othercube1.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube1)));
-        pickables.attachChild(othercube1);
-        bulletAppState.getPhysicsSpace().add(othercube1);
-        
-        Geometry othercube2 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube2.setMaterial(matWire);
-        othercube2.setLocalTranslation(new Vector3f(2464, 2, 186));
-        othercube2.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube2)));
-        pickables.attachChild(othercube2);
-        bulletAppState.getPhysicsSpace().add(othercube2);
-        
-        Geometry othercube3 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube3.setMaterial(matWire);
-        othercube3.setLocalTranslation(new Vector3f(2463, 2, 127));
-        othercube3.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube3)));
-        pickables.attachChild(othercube3);
-        bulletAppState.getPhysicsSpace().add(othercube3);
-        
-        Geometry othercube4 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube4.setMaterial(matWire);
-        othercube4.setLocalTranslation(new Vector3f(2569, 18, 199));
-        othercube4.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube4)));
-        pickables.attachChild(othercube4);
-        bulletAppState.getPhysicsSpace().add(othercube4);
-        
-        Geometry othercube5 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube5.setMaterial(matWire);
-        othercube5.setLocalTranslation(new Vector3f(2551, 13, -48));
-        othercube5.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube5)));
-        pickables.attachChild(othercube5);
-        bulletAppState.getPhysicsSpace().add(othercube5);*/
+     
     }
 
     private void initKeys() {
@@ -487,6 +389,13 @@ public class Main extends SimpleApplication implements ActionListener{
     private boolean up;
     private boolean down;
     //private final ActionListener actionListener = new ActionListener() {
+    
+    public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
+
+    }
+
+    public void onAnimChange(AnimControl control, AnimChannel channel, String animName) {
+    }
 
     public void onAction(String binding, boolean value, float tpf) {
     if (binding.equals("Lefts")) {
@@ -519,26 +428,28 @@ public class Main extends SimpleApplication implements ActionListener{
         rootNode.collideWith(ray, results);
         //System.out.println(pickables.collideWith(ray, results));
         // (Print the results so we see what is going on:)
+        float dist = 0f;
         for (int i = 0; i < results.size(); i++) {
           // (For each “hit”, we know distance, impact point, geometry.)
-          float dist = results.getCollision(i).getDistance();
+          dist = results.getCollision(i).getDistance();
           Vector3f pt = results.getCollision(i).getContactPoint();
           String target = results.getCollision(i).getGeometry().getName();
           System.out.println("Selection #" + i + ": " + target + " at " + pt + ", " + dist + " WU away.");
         }
         // Use the results -- we rotate the selected geometry.
         if (results.size() > 0) {
-            if(pickables.hasChild(results.getClosestCollision().getGeometry()))
+            if(pickables.hasChild(results.getClosestCollision().getGeometry()) && results.getClosestCollision().getDistance() < 20)
             {
           // The closest result is the target that the player picked:
           holding = results.getClosestCollision().getGeometry();
+          System.out.println(holding.getName());
           // Here comes the action:
           //if (target.getName().equals("cannonball")) {
             //pickables.detachChild(target);
-            bulletAppState.getPhysicsSpace().remove(holding);
+            //bulletAppState.getPhysicsSpace().remove(holding);
             //playerNode.attachChild(target);
-            holding.setLocalTranslation
-                    (player.getPhysicsLocation().x + (cam.getDirection().clone().multLocal(0.6f).x)*10, player.getPhysicsLocation().y + (cam.getDirection().clone().multLocal(0.6f).y)*10, player.getPhysicsLocation().z + (cam.getDirection().clone().multLocal(0.6f).z)*10);
+           // holding.setLocalTranslation
+                //    (player.getPhysicsLocation().x + (cam.getDirection().clone().multLocal(0.6f).x)*10, player.getPhysicsLocation().y + (cam.getDirection().clone().multLocal(0.6f).y)*10, player.getPhysicsLocation().z + (cam.getDirection().clone().multLocal(0.6f).z)*10);
             }//target.setLocalTranslation(player.getPhysicsLocation() + cam.getDirection().clone().multLocal(0.6f));
           }
         }
@@ -555,147 +466,24 @@ public class Main extends SimpleApplication implements ActionListener{
     }
   }
     
-    
-        //@Override
-        /*public void onAction(String name, boolean keyPressed, float tpf) {
-            if (name.equals("Lefts")) {
-                if (keyPressed) {
-                    Main.this.left = true;
-                } else {
-                    Main.this.left = false;
-                }
-            } else if (name.equals("Rights")) {
-                if (keyPressed) {
-                    Main.this.right = true;
-                } else {
-                    Main.this.right = false;
-                }
-            } else if (name.equals("Ups")) {
-                if (keyPressed) {
-                    Main.this.up = true;
-                } else {
-                    Main.this.up = false;
-                }
-            } else if (name.equals("Downs")) {
-                if (keyPressed) {
-                    Main.this.down = true;
-                } else {
-                    Main.this.down = false;
-                }
-            } else if (name.equals("Jumps")) {
-                Main.this.player.jump();
-            }
-            
-            else if (name.equals("PickTarget"))
-    {
-        if(holding == null)
-        {
-        // Reset results list.
-        CollisionResults results = new CollisionResults();
-        // Convert screen click to 3d position
-        Vector2f click2d = inputManager.getCursorPosition();
-        Vector3f click3d = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 0f).clone();
-        //Vector3f dir = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 1f).subtractLocal(click3d).normalizeLocal();
-        Vector3f dir = cam.getDirection().clone().multLocal(0.6f);
-        // Aim the ray from the clicked spot forwards.
-        Ray ray = new Ray(click3d, dir);
-        // Collect intersections between ray and all nodes in results list.
-        rootNode.collideWith(ray, results);
-        // (Print the results so we see what is going on:)
-        for (int i = 0; i < results.size(); i++) {
-          // (For each “hit”, we know distance, impact point, geometry.)
-          float dist = results.getCollision(i).getDistance();
-          Vector3f pt = results.getCollision(i).getContactPoint();
-          String target = results.getCollision(i).getGeometry().getName();
-          System.out.println("Selection #" + i + ": " + target + " at " + pt + ", " + dist + " WU away.");
-        }
-        // Use the results
-        if (results.size() > 0) {
-          // The closest result is the target that the player picked:
-          holding = results.getClosestCollision().getGeometry();
-          // Here comes the action:
-          //if (holding != null) {
-            //pickables.detachChild(target);
-            bulletAppState.getPhysicsSpace().remove(holding);
-            //playerNode.attachChild(target);
-            holding.setLocalTranslation
-                    (player.getPhysicsLocation().x + (cam.getDirection().clone().multLocal(0.6f).x)*10, player.getPhysicsLocation().y + (cam.getDirection().clone().multLocal(0.6f).y)*10, player.getPhysicsLocation().z + (cam.getDirection().clone().multLocal(0.6f).z)*10);
-          //target.setLocalTranslation(player.getPhysicsLocation() + cam.getDirection().clone().multLocal(0.6f));
-          }
-        }
-        else
-        {
-            for(int i = 0; i < holding.getNumControls(); i++)
-            {
-                holding.removeControl(holding.getControl(i));
-            }
-            holding.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(holding)));
-            bulletAppState.getPhysicsSpace().add(holding);
-            holding = null;
-        }
-    }
-            
-        }*/
-    //};
-    /*private void refreshOtherCubes()
-    {
-        Material matWire;
-        matWire = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        //matWire.getAdditionalRenderState().setWireframe(true);
-        matWire.setColor("Color", ColorRGBA.Brown);
-        
-        pickables.detachChild(othercube1);
-        pickables.detachChild(othercube2);
-        pickables.detachChild(othercube3);
-        pickables.detachChild(othercube4);
-        pickables.detachChild(othercube5);
-        
-        bulletAppState.getPhysicsSpace().remove(othercube1);
-        bulletAppState.getPhysicsSpace().remove(othercube2);
-        bulletAppState.getPhysicsSpace().remove(othercube3);
-        bulletAppState.getPhysicsSpace().remove(othercube4);
-        bulletAppState.getPhysicsSpace().remove(othercube5);
-        
-        othercube1 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube1.setMaterial(matWire);
-        othercube1.setLocalTranslation(cube5.getLocalTranslation().x+2500,cube5.getLocalTranslation().y,cube5.getLocalTranslation().z);
-        othercube1.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube1)));
-        pickables.attachChild(othercube1);
-        bulletAppState.getPhysicsSpace().add(othercube1);
-        
-         othercube2 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube2.setMaterial(matWire);
-        othercube2.setLocalTranslation(cube5.getLocalTranslation().x+2500,cube5.getLocalTranslation().y,cube5.getLocalTranslation().z);
-        othercube2.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube2)));
-        pickables.attachChild(othercube2);
-        bulletAppState.getPhysicsSpace().add(othercube2);
-        
-        othercube3 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube3.setMaterial(matWire);
-        othercube3.setLocalTranslation(cube5.getLocalTranslation().x+2500,cube5.getLocalTranslation().y,cube5.getLocalTranslation().z);
-        othercube3.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube3)));
-        pickables.attachChild(othercube3);
-        bulletAppState.getPhysicsSpace().add(othercube3);
-        
-        othercube4 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube4.setMaterial(matWire);
-        othercube4.setLocalTranslation(cube5.getLocalTranslation().x+2500,cube5.getLocalTranslation().y,cube5.getLocalTranslation().z);
-        othercube4.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube4)));
-        pickables.attachChild(othercube4);
-        bulletAppState.getPhysicsSpace().add(othercube4);
-        
-        othercube5 = new Geometry("cannonball", new Box(1, 1, 1));
-        othercube5.setMaterial(matWire);
-        othercube5.setLocalTranslation(cube5.getLocalTranslation().x+2500,cube5.getLocalTranslation().y,cube5.getLocalTranslation().z);
-        othercube5.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube5)));
-        pickables.attachChild(othercube5);
-        bulletAppState.getPhysicsSpace().add(othercube5);
-    }*/
+
     
     private final Vector3f walkDirection = new Vector3f();
 
     @Override
     public void simpleUpdate(final float tpf) {
+        
+        if (!channel.getAnimationName().equals("swim")){
+                channel.setAnim("swim", 0.50f);
+                channel.setLoopMode(LoopMode.Cycle);
+                channel.setSpeed(0.10f);
+        }
+        float[] angles = new float[3];
+        model.getLocalRotation().toAngles(angles);
+        model.rotate(0, -tpf, 0);
+        model.setLocalTranslation(new Vector3f((float)(2500+Math.sin(angles[1])*10), 2, (float)(140+Math.cos(angles[1])*10)));
+        
+        
         this.cam.getRotation().toAngles(eyeAngles);
         if(eyeAngles[0]>1.2f){
             eyeAngles[0] = 1.2f;
@@ -712,23 +500,7 @@ public class Main extends SimpleApplication implements ActionListener{
                 player.setPhysicsLocation(new Vector3f(cam.getLocation().x+2500, 10, cam.getLocation().z+10));
                 player.setGravity(7);
                 
-                /*othercube1.removeControl(othercube1.getControl(0));
-                othercube2.removeControl(othercube2.getControl(0));
-                othercube3.removeControl(othercube3.getControl(0));
-                othercube4.removeControl(othercube4.getControl(0));
-                othercube5.removeControl(othercube5.getControl(0));
-                othercube1.setLocalTranslation(cube1.getLocalTranslation());
-                othercube2.setLocalTranslation(cube2.getLocalTranslation());
-                othercube3.setLocalTranslation(cube3.getLocalTranslation());
-                othercube4.setLocalTranslation(cube4.getLocalTranslation());
-                othercube5.setLocalTranslation(cube5.getLocalTranslation());
-                othercube1.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube1)));
-                othercube2.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube2)));
-                othercube3.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube3)));
-                othercube4.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube4)));
-                othercube5.addControl(new RigidBodyControl(CollisionShapeFactory.createBoxShape(othercube5)));
-*/
-                //refreshOtherCubes();
+
                 birds.pause();
                 bubbles.play();
                 for(int i =0; i<5; i++){
@@ -768,8 +540,8 @@ public class Main extends SimpleApplication implements ActionListener{
             cam.setLocation(player.getPhysicsLocation());
         }
         
-        if(holding != null){holding.setLocalTranslation
-                    (player.getPhysicsLocation().x + (camDir.x)*20, player.getPhysicsLocation().y + (camDir.y)*20, player.getPhysicsLocation().z + (camDir.z)*20);
+        if(holding != null){
+            ((RigidBodyControl)holding.getControl(0)).setPhysicsLocation(new Vector3f(player.getPhysicsLocation().x + (camDir.x)*20, player.getPhysicsLocation().y + (camDir.y)*20, player.getPhysicsLocation().z + (camDir.z)*20));
     }
     }
 }
